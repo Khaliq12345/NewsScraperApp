@@ -1,0 +1,85 @@
+from selectolax.parser import HTMLParser
+import pandas as pd
+import models as mod
+import json
+
+author_ids = [
+    {"Jerry Beach": "5891"},
+    {"Larry Fleisher": "6126"},
+    {"Scott Orgera": "6467"}
+]
+
+def get_author_id(author_name: str) -> str:
+    for x in author_ids:
+        if author_name in x:
+            return x[author_name]
+            
+class Forbes:
+    def __init__(self):
+        self.input_data = mod.LoadData(publication='Forbes')
+
+    def get_posts(self, response):
+        #articles = soup.css('div[data-test-e2e="streamContainer"] div')
+        json_data = response.json()
+        articles = json_data['streamItems']
+        return articles
+
+    def get_data_from_post(self, post: dict, author_name: str):
+        link = header = paragraph = ''
+        date, authors, img = '5 months ago', [1], 'https://tinyurl.com/5yxk5cua'
+        date = post['timestamp']
+        if mod.less_than_3_days_old(date):
+            header = post['title']
+            paragraph = post['description']
+            link = post['url']
+            img = post['image']
+            authors = [1]
+            author_name = author_name
+            try:
+                valid_posts = mod.save_my_post(
+                    publication_table=self.input_data.publication_table,
+                    publication=self.input_data.publication,
+                    author_name=author_name,
+                    header=header,
+                    paragraph=paragraph,
+                    link=link,
+                    date=date,
+                    authors=authors,
+                    img=img
+                )
+                for p in valid_posts:
+                    self.input_data.post_items.append(p)
+            except:
+                self.input_data.fails.append({"failed": post['link']})
+        else:
+            self.input_data.to_continue = False
+        
+    def engine(self, author_url: str, author_name: str):
+        author_id = get_author_id(author_name)
+        gen_url = f"https://www.forbes.com/simple-data/more-stream/?sourceType=author&sourceValue=blogstream-blogAuthorId/blog/author/blog-{author_id}_all&source=stream&isBlog="
+        response = mod.send_requests(gen_url)
+        if response:
+            posts = self.get_posts(response)
+            for post in posts:
+                if self.input_data.to_continue:
+                    self.get_data_from_post(post, author_name)
+                else:
+                    break
+        self.input_data.to_continue = True
+
+    def main(self):
+        for idx, row in self.input_data.publication_table.iterrows():
+            try:
+                if pd.isna(row['Article URL']):
+                    pass
+                else:
+                    print(row['Article URL'], row['Author Name'])
+                    self.engine(row['Article URL'], row['Author Name'])
+            except Exception as e:
+                print(e)
+                self.input_data.fails.append({"failed": f"Error scraping one or more posts of {row['Article URL']} with error {e}"})
+        return self.input_data.post_items, self.input_data.fails
+    
+# if __name__ == '__main__':
+#     forbes = Forbes()
+#     print(forbes.main())

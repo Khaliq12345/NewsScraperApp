@@ -1,0 +1,7 @@
+.venv
+*.ipynb
+config.py
+poetry.lock
+pyproject.toml
+outputs
+__pycache__
