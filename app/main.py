@@ -33,4 +33,4 @@ def run():
     else:
         runner.main()
     
-ui.run(port=2000, storage_secret='adminapp')
+ui.run(port=2000, storage_secret='adminapp', title='News App', favicon='📰')
