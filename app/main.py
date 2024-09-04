@@ -6,7 +6,8 @@ cur_dir = os.getcwd()
 parent_dir = Path(cur_dir).parent.as_posix()
 sys.path.append(cur_dir)
 sys.path.append(parent_dir)
-sys.path.append(f'{parent_dir}/scrapers')
+sys.path.append(f'{cur_dir}/pages')
+sys.path.append(f'{cur_dir}/scrapers')
 from pages import homepage, loginpage
 from dateparser import parse
                      

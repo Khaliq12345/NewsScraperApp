@@ -14,7 +14,7 @@ class LoginPage:
             self.send_notif("Email or password cannot be empty")
         elif (self.username == config.user_db['username']) and (self.password == config.user_db['password']):
             app.storage.user['user'] = {'username': self.username, 
-                                        'exp': parse('in 5 minutes').strftime("%Y-%m-%dT%T")}
+                                        'exp': parse('in 24 hours').strftime("%Y-%m-%dT%T")}
             ui.navigate.reload()
         
     def send_notif(self, msg, n_type: str = 'info'):
